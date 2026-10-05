@@ -49,12 +49,20 @@ summary b{font-size:15px}.dt{color:var(--mute);font-size:13px}
 dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);max-width:560px;width:92%}
 dialog textarea{width:100%;height:160px;font:12px monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
 .msg{font-size:13px;color:var(--mute);margin:6px 0}
+#sheet{display:none}
 @media print{
- :root{--bg:#fff;--card:#fff;--ink:#000;--mute:#444;--line:#999;--soft:#eee;--rest:#ddd}
- .tools,.tabs,.noprint{display:none!important}
- .wk{display:block!important;break-inside:avoid-page}.wk>h2{display:block}
- details.day .body{display:block}.chip{height:24px;min-width:26px;font-size:10px}
- main{max-width:none;padding:0}
+ @page{size:A4 landscape;margin:6mm}
+ :root{padding:0}
+ body{background:#fff;color:#000}
+ main{display:none}
+ #sheet{display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ #sheet h3{margin:0 0 2px;font:700 11pt Georgia,serif}
+ table.sh{width:100%;border-collapse:collapse;table-layout:fixed;font:6.2pt/1 Arial,sans-serif}
+ .sh th,.sh td{border:.4pt solid #000;padding:0 1px;height:4.3mm;text-align:center;overflow:hidden;white-space:nowrap}
+ .sh th{background:#e6e6e6;font-weight:700}
+ .sh td.l,.sh th.l{text-align:left}
+ .sh tr.rs td{background:#7f7f7f;color:#fff;font-weight:700}
+ .sh td.ck{font-size:7pt;font-weight:700}
 }
 </style>
 </head>
@@ -77,7 +85,7 @@ dialog textarea{width:100%;height:160px;font:12px monospace;background:var(--bg)
 </section>
 
 <div class="tools">
- <button class="btn pri" id="print">Cetak</button>
+ <button class="btn pri" id="print">Cetak / Simpan PDF</button>
  <button class="btn" id="backup">Cadangkan / pulihkan</button>
  <button class="btn" id="reset">Kosongkan semua</button>
 </div>
@@ -85,6 +93,8 @@ dialog textarea{width:100%;height:160px;font:12px monospace;background:var(--bg)
 <div class="tabs" role="tablist" id="tabs"></div>
 <div id="weeks"></div>
 </main>
+
+<div id="sheet" aria-hidden="true"></div>
 
 <dialog id="dlg">
  <p class="msg">Salin teks ini untuk cadangan. Untuk memulihkan, tempel cadangan lalu tekan Pulihkan.</p>
@@ -147,8 +157,30 @@ document.addEventListener("input",function(e){
  if(f.f){S.d[+f.i][f.f]=e.target.value;save()}
  if(f.m){S.meta[f.m]=e.target.value;save();if(f.m==="start"){document.querySelectorAll("[data-dt]").forEach(function(s){var i=+s.dataset.dt,x=dateOf(i);s.textContent=(x&&i%7!==6)?"· "+x:x})}}
 });
-document.getElementById("print").onclick=function(){
- document.querySelectorAll("details.day").forEach(function(d){d.open=true});window.print()};
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function dshort(i){if(!S.meta.start)return "";var d=new Date(S.meta.start+"T00:00");if(isNaN(d))return "";d.setDate(d.getDate()+i);return d.toLocaleDateString("id-ID",{day:"2-digit",month:"2-digit",year:"2-digit"})}
+function buildSheet(){
+ var m=S.meta,h='<h3>MetodeQu &mdash; Tabel Tahfidz</h3><table class="sh"><colgroup>';
+ [12,12,8,10,9,10,10].forEach(function(w){h+='<col style="width:'+w+'mm">'});
+ for(var c=0;c<35;c++)h+='<col>';
+ h+='</colgroup>';
+ h+='<tr><th class="l" colspan="11">Program hafalan: dari juz '+esc(m.juz)+' s/d '+esc(m.sd)+'</th><th class="l" colspan="14">Target waktu menghafal: '+esc(m.target)+'</th><th class="l" colspan="17">Mulai: '+esc(m.start)+' &nbsp; Selesai: '+esc(m.finish)+'</th></tr>';
+ h+='<tr><th class="l" colspan="4">Nama: '+esc(m.nama)+'</th><th colspan="8">Hafalan lama</th><th colspan="30">Hafalan baru</th></tr>';
+ h+='<tr><th colspan="4">Target Harian</th><th rowspan="2">Muraja\'ah (1x)</th><th colspan="2">Rabth (1x)</th><th colspan="5">Hafalan kemarin</th><th colspan="3">Istima\' Qari mujawwad</th><th rowspan="2">Meng-hafal</th><th rowspan="2">Mere-kam</th><th colspan="25">Tikrar (mengulang langsung hafalan yang telah didapat)</th></tr>';
+ h+='<tr><th>Hari</th><th>Tanggal</th><th>Hari ke</th><th>Hal/hari</th><th>awal</th><th>akhir</th>';
+ for(var a=1;a<=5;a++)h+='<th>'+a+'x</th>';
+ for(a=1;a<=3;a++)h+='<th>'+a+'x</th>';
+ for(a=1;a<=25;a++)h+='<th>'+a+'x</th>';
+ h+='</tr>';
+ function ck(v){return '<td class="ck">'+(v?'&#10003;':'')+'</td>'}
+ for(var i=0;i<35;i++){var d=S.d[i];
+  if(i%7===6){h+='<tr class="rs"><td class="l">Jum\'at</td><td>'+dshort(i)+'</td><td colspan="40"></td></tr>';continue}
+  h+='<tr><td class="l">'+DN[i%7].toLowerCase()+'</td><td>'+dshort(i)+'</td><td>'+hariKe(i)+'</td><td>'+esc(d.hal)+'</td><td>'+esc(d.mur)+'</td><td>'+esc(d.ra)+'</td><td>'+esc(d.rk)+'</td>';
+  d.k.forEach(function(v){h+=ck(v)});d.i.forEach(function(v){h+=ck(v)});h+=ck(d.m)+ck(d.r);d.t.forEach(function(v){h+=ck(v)});
+  h+='</tr>'}
+ document.getElementById("sheet").innerHTML=h+'</table>'}
+window.addEventListener("beforeprint",buildSheet);
+document.getElementById("print").onclick=function(){buildSheet();window.print()};
 document.getElementById("reset").onclick=function(){
  if(confirm("Kosongkan semua isian? Tindakan ini tidak bisa dibatalkan.")){S=blank();save();render()}};
 var dlg=document.getElementById("dlg"),txt=document.getElementById("txt");
