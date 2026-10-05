@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tabel Tahfidz MetodeQu</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f6f1;--card:#fff;--ink:#1c2b22;--mute:#5f7266;--line:#d5dfd7;--accent:#1f6b4a;--accent-ink:#fff;--on:#1f6b4a;--rest:#dfe5e0;--soft:#e8f0ea}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101a14;--card:#18251d;--ink:#e6eee8;--mute:#93a79a;--line:#2b3d32;--accent:#4fb988;--accent-ink:#08150e;--on:#4fb988;--rest:#222f27;--soft:#1f2f25}}
+:root[data-theme="dark"]{--bg:#101a14;--card:#18251d;--ink:#e6eee8;--mute:#93a79a;--line:#2b3d32;--accent:#4fb988;--accent-ink:#08150e;--on:#4fb988;--rest:#222f27;--soft:#1f2f25}
+*{box-sizing:border-box}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:14px 12px 60px}
+h1{font:700 22px/1.2 Georgia,"Times New Roman",serif;margin:4px 0 2px}
+.sub{color:var(--mute);margin:0 0 12px;font-size:13px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid .full{grid-column:1/-1}
+label{display:block;font-size:12px;color:var(--mute);margin-bottom:2px}
+input{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 9px;min-width:0}
+input:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.bar{height:8px;background:var(--soft);border-radius:99px;overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+.tot{font-size:13px;color:var(--mute);margin-top:4px}
+.tools{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+button{font:inherit;cursor:pointer}
+.btn{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 11px}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tabs{display:flex;gap:6px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:8px 0;z-index:5;overflow-x:auto}
+.tab{flex:1;min-width:64px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 6px;color:var(--ink);text-align:center}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.wk{display:none}.wk.on{display:block}
+.wk>h2{display:none;font:700 16px Georgia,serif;margin:14px 0 6px}
+details.day{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:8px;overflow:hidden}
+details.day.rest{background:var(--rest);border-style:dashed}
+summary{list-style:none;padding:11px 12px;display:flex;align-items:center;gap:8px;cursor:pointer}
+summary::-webkit-details-marker{display:none}
+summary b{font-size:15px}.dt{color:var(--mute);font-size:13px}
+.pct{margin-left:auto;font-weight:600;font-size:13px;color:var(--accent);min-width:38px;text-align:right}
+.body{padding:2px 12px 12px;border-top:1px solid var(--line)}
+.sec{margin-top:10px}
+.sec>span{display:block;font-size:12px;color:var(--mute);margin-bottom:5px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{min-width:40px;height:36px;padding:0 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:13px}
+.chip.on{background:var(--on);color:var(--accent-ink);border-color:var(--on);font-weight:600}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);max-width:560px;width:92%}
+dialog textarea{width:100%;height:160px;font:12px monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
+.msg{font-size:13px;color:var(--mute);margin:6px 0}
+@media print{
+ :root{--bg:#fff;--card:#fff;--ink:#000;--mute:#444;--line:#999;--soft:#eee;--rest:#ddd}
+ .tools,.tabs,.noprint{display:none!important}
+ .wk{display:block!important;break-inside:avoid-page}.wk>h2{display:block}
+ details.day .body{display:block}.chip{height:24px;min-width:26px;font-size:10px}
+ main{max-width:none;padding:0}
+}
+</style>
+</head>
+<body>
+<main>
+<h1>Tabel Tahfidz MetodeQu</h1>
+<p class="sub">Isi dari HP. Data tersimpan otomatis di perangkat ini.</p>
+
+<section class="panel">
+ <div class="grid">
+  <div class="full"><label for="nama">Nama</label><input id="nama" data-m="nama"></div>
+  <div><label for="juz">Program hafalan: dari juz</label><input id="juz" data-m="juz" inputmode="numeric"></div>
+  <div><label for="sd">s/d</label><input id="sd" data-m="sd"></div>
+  <div class="full"><label for="tg">Target waktu menghafal</label><input id="tg" data-m="target"></div>
+  <div><label for="st">Mulai (hari pertama = Sabtu)</label><input id="st" type="date" data-m="start"></div>
+  <div><label for="fn">Selesai</label><input id="fn" type="date" data-m="finish"></div>
+ </div>
+ <div class="bar"><i id="bar"></i></div>
+ <div class="tot" id="tot"></div>
+</section>
+
+<div class="tools">
+ <button class="btn pri" id="print">Cetak</button>
+ <button class="btn" id="backup">Cadangkan / pulihkan</button>
+ <button class="btn" id="reset">Kosongkan semua</button>
+</div>
+
+<div class="tabs" role="tablist" id="tabs"></div>
+<div id="weeks"></div>
+</main>
+
+<dialog id="dlg">
+ <p class="msg">Salin teks ini untuk cadangan. Untuk memulihkan, tempel cadangan lalu tekan Pulihkan.</p>
+ <textarea id="txt" aria-label="Data cadangan"></textarea>
+ <div class="tools" style="margin:8px 0 0">
+  <button class="btn pri" id="copy">Salin</button>
+  <button class="btn" id="restore">Pulihkan</button>
+  <button class="btn" id="close">Tutup</button>
+ </div>
+</dialog>
+
+<script>
+var DN=["Sabtu","Ahad","Senin","Selasa","Rabu","Kamis","Jum'at"],KEY="metodequ-tahfidz-v1";
+function z(n){return Array(n).fill(0)}
+function blank(){var d=[];for(var i=0;i<35;i++)d.push({hal:"",mur:"",ra:"",rk:"",k:z(5),i:z(3),m:0,r:0,t:z(25)});
+ return {meta:{nama:"",juz:"",sd:"",target:"",start:"",finish:""},d:d}}
+var S=blank(),wk=0;
+try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&p.d&&p.d.length===35)S=p}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function chips(arr,kind,i,label){return arr.map(function(v,j){return '<button class="chip'+(v?' on':'')+'" data-c="'+kind+'" data-i="'+i+'" data-j="'+j+'" aria-pressed="'+(!!v)+'">'+(j+1)+'x</button>'}).join("")}
+function toggle(k,i,txt){return '<button class="chip'+(S.d[i][k]?' on':'')+'" data-c="'+k+'" data-i="'+i+'" aria-pressed="'+(!!S.d[i][k])+'">'+txt+'</button>'}
+function dateOf(i){if(!S.meta.start)return "";var d=new Date(S.meta.start+"T00:00");if(isNaN(d))return "";d.setDate(d.getDate()+i);return d.toLocaleDateString("id-ID",{day:"numeric",month:"short",year:"numeric"})}
+function hariKe(i){return Math.floor(i/7)*6+(i%7)+1}
+function prog(i){var d=S.d[i],n=0;n+=d.k.reduce(function(a,b){return a+b},0)+d.i.reduce(function(a,b){return a+b},0)+d.t.reduce(function(a,b){return a+b},0)+d.m+d.r;return n}
+var MAX=5+3+25+2;
+function dayHTML(i){
+ var d=S.d[i],rest=i%7===6,h='<details class="day'+(rest?' rest':'')+'" data-i="'+i+'"><summary><b>'+DN[i%7]+'</b>';
+ if(rest)return '<div class="day rest" style="padding:11px 12px;border:1px dashed var(--line);border-radius:12px;margin-bottom:8px;background:var(--rest)"><b>'+DN[6]+'</b> <span class="dt" data-dt="'+i+'">'+dateOf(i)+'</span> <span class="dt">· libur hafalan</span></div>';
+ h+='<span class="dt">Hari ke-'+hariKe(i)+' <span data-dt="'+i+'">'+(dateOf(i)?"· "+dateOf(i):"")+'</span></span><span class="pct" id="p'+i+'">'+Math.round(prog(i)/MAX*100)+'%</span></summary><div class="body">';
+ h+='<div class="row3"><div><label>Target hal/hari</label><input data-f="hal" data-i="'+i+'" value="'+d.hal+'"></div><div><label>Muraja\'ah (juz)</label><input data-f="mur" data-i="'+i+'" value="'+d.mur+'"></div><div><label>Rabth (1x)</label><input data-f="ra" data-i="'+i+'" placeholder="awal" value="'+d.ra+'"></div></div>';
+ h+='<div class="row3"><div></div><div></div><div><label>Rabth akhir</label><input data-f="rk" data-i="'+i+'" value="'+d.rk+'"></div></div>';
+ h+='<div class="sec"><span>Hafalan kemarin</span><div class="chips">'+chips(d.k,"k",i)+'</div></div>';
+ h+='<div class="sec"><span>Istima\' qari mujawwad</span><div class="chips">'+chips(d.i,"i",i)+'</div></div>';
+ h+='<div class="sec"><span>Hafalan baru</span><div class="chips">'+toggle("m",i,"Menghafal")+toggle("r",i,"Merekam")+'</div></div>';
+ h+='<div class="sec"><span>Tikrar: ulang langsung hafalan yang didapat</span><div class="chips">'+chips(d.t,"t",i)+'</div></div>';
+ return h+'</div></details>'}
+function render(){
+ var t="",w="";
+ for(var k=0;k<5;k++){t+='<button class="tab" role="tab" data-w="'+k+'" aria-selected="'+(k===wk)+'">Pekan '+(k+1)+'</button>';
+  w+='<section class="wk'+(k===wk?' on':'')+'"><h2>Pekan '+(k+1)+'</h2>';
+  for(var j=0;j<7;j++)w+=dayHTML(k*7+j);w+='</section>'}
+ document.getElementById("tabs").innerHTML=t;document.getElementById("weeks").innerHTML=w;
+ for(var m in S.meta){var e=document.querySelector('[data-m="'+m+'"]');if(e)e.value=S.meta[m]}
+ total()}
+function total(){var n=0,c=0;for(var i=0;i<35;i++)if(i%7!==6){n+=prog(i);if(prog(i)>0)c++}
+ var pc=n/(30*MAX)*100;document.getElementById("bar").style.width=pc+"%";
+ document.getElementById("tot").textContent=c+" hari terisi dari 30 hari hafalan · "+Math.round(pc)+"% selesai"}
+document.addEventListener("click",function(e){
+ var c=e.target.closest("[data-c]");
+ if(c){var i=+c.dataset.i,k=c.dataset.c,d=S.d[i];
+  if(c.dataset.j!==undefined){var j=+c.dataset.j;d[k][j]=d[k][j]?0:1;c.classList.toggle("on",!!d[k][j])}
+  else{d[k]=d[k]?0:1;c.classList.toggle("on",!!d[k])}
+  c.setAttribute("aria-pressed",c.classList.contains("on"));
+  document.getElementById("p"+i).textContent=Math.round(prog(i)/MAX*100)+"%";total();save();return}
+ var t=e.target.closest("[data-w]");
+ if(t){wk=+t.dataset.w;render();window.scrollTo(0,0)}
+});
+document.addEventListener("input",function(e){
+ var f=e.target.dataset;
+ if(f.f){S.d[+f.i][f.f]=e.target.value;save()}
+ if(f.m){S.meta[f.m]=e.target.value;save();if(f.m==="start"){document.querySelectorAll("[data-dt]").forEach(function(s){var i=+s.dataset.dt,x=dateOf(i);s.textContent=(x&&i%7!==6)?"· "+x:x})}}
+});
+document.getElementById("print").onclick=function(){
+ document.querySelectorAll("details.day").forEach(function(d){d.open=true});window.print()};
+document.getElementById("reset").onclick=function(){
+ if(confirm("Kosongkan semua isian? Tindakan ini tidak bisa dibatalkan.")){S=blank();save();render()}};
+var dlg=document.getElementById("dlg"),txt=document.getElementById("txt");
+document.getElementById("backup").onclick=function(){txt.value=JSON.stringify(S);dlg.showModal()};
+document.getElementById("close").onclick=function(){dlg.close()};
+document.getElementById("copy").onclick=function(){txt.select();try{navigator.clipboard.writeText(txt.value)}catch(e){try{document.execCommand("copy")}catch(_){}}};
+document.getElementById("restore").onclick=function(){
+ try{var p=JSON.parse(txt.value);if(!p.d||p.d.length!==35)throw 0;S=p;save();render();dlg.close()}catch(e){alert("Data cadangan tidak valid. Pastikan teks ditempel lengkap.")}};
+render();
+</script>
+</body>
+</html>
