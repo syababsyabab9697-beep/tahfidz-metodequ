@@ -81,10 +81,9 @@ textarea{height:180px;font:12px/1.3 monospace}
  <button class="btn" id="backup">Cadangkan / pulihkan</button>
 </div>
 <div class="tools">
- <span style="font-size:13px;color:var(--mute)">Cetak pekan</span>
- <input id="pf" type="number" min="1" value="1" style="width:64px" aria-label="Dari pekan">
- <span style="font-size:13px;color:var(--mute)">s/d</span>
- <input id="pt" type="number" min="1" value="5" style="width:64px" aria-label="Sampai pekan">
+ <span style="font-size:13px;color:var(--mute)">Cetak rekap</span>
+ <select id="pm" aria-label="Jenis rekap" style="width:auto"><option value="w">Per pekan</option><option value="m">Per bulan</option></select>
+ <select id="pv" aria-label="Pilih periode" style="flex:1;width:auto"></select>
  <button class="btn pri" id="print">Cetak / Simpan PDF</button>
 </div>
 
@@ -152,14 +151,14 @@ function render(){
  var h="";for(var j=0;j<7;j++)h+=dayHTML(wk*7+j);
  document.getElementById("days").innerHTML=h;opts();
  for(var m in S.meta){var e=document.querySelector('[data-m="'+m+'"]');if(e)e.value=S.meta[m]}
- document.getElementById("pt").value=Math.min(S.weeks,+document.getElementById("pt").value||5);
+ pOpts();
  total()}
 function total(){var n=0,c=0;for(var i=0;i<S.weeks*7;i++)if(i%7!==6){n+=prog(i);if(prog(i)>0)c++}
  var pc=n/(S.weeks*6*MAX)*100;
  document.getElementById("bar").style.width=pc+"%";
  document.getElementById("tot").textContent=c+" hari terisi dari "+(S.weeks*6)+" hari hafalan ("+S.weeks+" pekan) · "+Math.round(pc)+"% selesai"}
 function go(w){wk=Math.max(0,Math.min(S.weeks-1,w));render();window.scrollTo(0,0)}
-function addWeeks(n){for(var i=0;i<n*7;i++)S.d.push(day());S.weeks+=n;save();opts();total()}
+function addWeeks(n){for(var i=0;i<n*7;i++)S.d.push(day());S.weeks+=n;save();opts();pOpts();total()}
 document.addEventListener("click",function(e){
  var c=e.target.closest("[data-c]");
  if(c){var i=+c.dataset.i,k=c.dataset.c,d=S.d[i];
@@ -179,8 +178,9 @@ document.getElementById("next").onclick=function(){go(wk+1)};
 document.getElementById("add4").onclick=function(){addWeeks(4)};
 document.getElementById("add1").onclick=function(){addWeeks(1)};
 function buildSheet(){
- var m=S.meta,a=Math.max(1,+document.getElementById("pf").value||1)-1,b=Math.min(S.weeks,+document.getElementById("pt").value||S.weeks)-1;
- var h='<h3>MetodeQu — Tabel Tahfidz · Pekan '+(a+1)+'–'+(b+1)+'</h3><table class="sh"><colgroup>';
+ var m=S.meta,P=periods(document.getElementById("pm").value)[+document.getElementById("pv").value||0]||{l:"Semua",a:0,b:S.weeks*7-1},a=P.a,b=P.b,sn=0,sc=0,st=0;
+ for(var q=a;q<=b;q++)if(q%7!==6){st++;sn+=prog(q);if(prog(q))sc++}
+ var h='<h3>MetodeQu — Rekap Tahfidz · '+esc(P.l)+' · '+sc+'/'+st+' hari terisi · '+Math.round(sn/((st||1)*MAX)*100)+'%</h3><table class="sh"><colgroup>';
  [12,12,8,10,9,10,10].forEach(function(w){h+='<col style="width:'+w+'mm">'});
  for(var c=0;c<35;c++)h+='<col>';
  h+='</colgroup>';
@@ -191,12 +191,22 @@ function buildSheet(){
  for(var x=1;x<=5;x++)h+='<th>'+x+'x</th>';for(x=1;x<=3;x++)h+='<th>'+x+'x</th>';for(x=1;x<=25;x++)h+='<th>'+x+'x</th>';
  h+='</tr>';
  function ck(v){return '<td class="ck">'+(v?'&#10003;':'')+'</td>'}
- for(var i=a*7;i<(b+1)*7;i++){var d=S.d[i];
+ for(var i=a;i<=b;i++){var d=S.d[i];
   if(i%7===6){h+='<tr class="rs"><td class="l">Jum’at</td><td>'+dateOf(i,1)+'</td><td colspan="40"></td></tr>';continue}
   h+='<tr><td class="l">'+DN[i%7].toLowerCase()+'</td><td>'+dateOf(i,1)+'</td><td>'+hariKe(i)+'</td><td>'+esc(d.hal)+'</td><td>'+esc(d.mur)+'</td><td>'+esc(d.ra)+'</td><td>'+esc(d.rk)+'</td>';
   d.k.forEach(function(v){h+=ck(v)});d.i.forEach(function(v){h+=ck(v)});h+=ck(d.m)+ck(d.r);d.t.forEach(function(v){h+=ck(v)});
   h+='</tr>'}
  document.getElementById("sheet").innerHTML=h+'</table>'}
+function periods(mode){
+ var P=[],n=S.weeks*7,i;
+ if(mode==="w"){for(var w=0;w<S.weeks;w++)P.push({l:"Pekan "+(w+1),a:w*7,b:w*7+6});return P}
+ for(var b=0;b<S.weeks;b+=4){var e=Math.min(b+4,S.weeks);P.push({l:"Bulan ke-"+(b/4+1)+" (pekan "+(b+1)+"–"+e+")",a:b*7,b:e*7-1})}
+ return P}
+function pOpts(){
+ var pv=document.getElementById("pv"),P=periods(document.getElementById("pm").value),old=pv.value,h="",k=0;
+ P.forEach(function(p,i){h+='<option value="'+i+'">'+p.l+'</option>';if(p.a<=wk*7&&wk*7<=p.b)k=i});
+ pv.innerHTML=h;pv.value=(old!==""&&+old<P.length)?old:k}
+document.getElementById("pm").onchange=function(){document.getElementById("pv").innerHTML="";pOpts()};
 window.addEventListener("beforeprint",buildSheet);
 document.getElementById("print").onclick=function(){buildSheet();window.print()};
 document.getElementById("reset").onclick=function(){
