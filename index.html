@@ -82,11 +82,15 @@ textarea{height:180px;font:12px/1.3 monospace}
 </div>
 <div class="tools">
  <span style="font-size:13px;color:var(--mute)">Cetak rekap</span>
- <select id="pm" aria-label="Jenis rekap" style="width:auto"><option value="w">Per pekan</option><option value="m">Per bulan</option></select>
+ <select id="pm" aria-label="Jenis rekap" style="width:auto"><option value="w">Per pekan</option><option value="m">Per bulan</option><option value="j">Per juz</option></select>
  <select id="pv" aria-label="Pilih periode" style="flex:1;width:auto"></select>
  <button class="btn pri" id="print">Cetak / Simpan PDF</button>
 </div>
 
+<details class="panel"><summary style="padding:0"><b>Rekap juz (otomatis)</b> <span class="dt">dari kolom Muraja’ah</span></summary>
+ <div id="jl" style="margin-top:8px;font-size:13px"></div>
+ <p class="note">Juz dianggap selesai pada tanggal pertama juz itu muncul di kolom Muraja’ah (misalnya “1” atau “1-3”). Nomor halaman mengikuti Mushaf Madinah (604 halaman).</p>
+</details>
 <div class="nav"><button class="btn" id="prev" aria-label="Pekan sebelumnya">‹</button><select id="wsel" aria-label="Pilih pekan"></select><button class="btn" id="next" aria-label="Pekan berikutnya">›</button></div>
 <div id="days"></div>
 <div class="tools" style="margin-top:14px"><button class="btn" id="reset">Kosongkan semua</button></div>
@@ -108,7 +112,7 @@ textarea{height:180px;font:12px/1.3 monospace}
 var DN=["Sabtu","Ahad","Senin","Selasa","Rabu","Kamis","Jum’at"],K2="metodequ-tahfidz-v2",K1="metodequ-tahfidz-v1";
 var MAX=5+3+25+2;
 function z(n){return Array(n).fill(0)}
-function day(){return {hal:"",mur:"",ra:"",rk:"",k:z(5),i:z(3),m:0,r:0,t:z(25)}}
+function day(){return {hal:"",juz:"",ay:"",cs:"",mur:"",ra:"",rk:"",k:z(5),i:z(3),m:0,r:0,t:z(25)}}
 function blank(n){var d=[];for(var i=0;i<n*7;i++)d.push(day());return {v:2,weeks:n,meta:{nama:"",juz:"",sd:"",target:"",start:"",finish:""},d:d}}
 // Normalisasi: terima format lama (35 hari) atau baru; tidak pernah membuang data
 function norm(p){
@@ -116,7 +120,7 @@ function norm(p){
  var n=Math.max(26,Math.ceil(p.d.length/7),p.weeks||0),o=blank(n);
  for(var m in o.meta)if(p.meta&&p.meta[m]!=null)o.meta[m]=p.meta[m];
  p.d.forEach(function(s,i){var t=o.d[i],a;if(!s)return;
-  ["hal","mur","ra","rk"].forEach(function(f){if(s[f]!=null)t[f]=s[f]});
+  ["hal","juz","ay","cs","mur","ra","rk"].forEach(function(f){if(s[f]!=null)t[f]=s[f]});
   [["k",5],["i",3],["t",25]].forEach(function(x){if(s[x[0]])for(a=0;a<x[1];a++)t[x[0]][a]=s[x[0]][a]?1:0});
   t.m=s.m?1:0;t.r=s.r?1:0});
  return o}
@@ -137,6 +141,7 @@ function dayHTML(i){
  var d=S.d[i];
  if(i%7===6)return '<div class="rest"><b>Jum’at</b> '+(dateOf(i)?'· '+dateOf(i)+' ':'')+'· libur hafalan</div>';
  var h='<details class="day" data-i="'+i+'"><summary><b>'+DN[i%7]+'</b><span class="dt">Hari ke-'+hariKe(i)+(dateOf(i)?' · '+dateOf(i):'')+'</span><span class="pct" id="p'+i+'">'+Math.round(prog(i)/MAX*100)+'%</span></summary><div class="body">';
+ if(i%7===1)h+='<div class="sec" style="background:var(--soft);border-radius:10px;padding:10px"><span><b>Setoran Ahad</b>: hafalan sejak setoran terakhir</span><div id="sr" style="font-size:13px">'+setoranHTML(i)+'</div><label for="cs'+i+'" style="margin-top:8px">Catatan setoran (koreksi, nilai, tajwid)</label><textarea id="cs'+i+'" data-f="cs" data-i="'+i+'" style="height:70px;font:inherit">'+esc(d.cs)+'</textarea></div>';
  h+='<div class="row3"><div><label>Target hal/hari</label><input data-f="hal" data-i="'+i+'" value="'+esc(d.hal)+'"></div><div><label>Muraja’ah (juz)</label><input data-f="mur" data-i="'+i+'" value="'+esc(d.mur)+'"></div><div><label>Rabth awal</label><input data-f="ra" data-i="'+i+'" value="'+esc(d.ra)+'"></div></div>';
  h+='<div class="row3"><div></div><div></div><div><label>Rabth akhir</label><input data-f="rk" data-i="'+i+'" value="'+esc(d.rk)+'"></div></div>';
  h+='<div class="sec"><span>Hafalan kemarin</span><div class="chips">'+chips(d.k,"k",i)+'</div></div>';
@@ -169,7 +174,7 @@ document.addEventListener("click",function(e){
 });
 document.addEventListener("input",function(e){
  var f=e.target.dataset;
- if(f.f){S.d[+f.i][f.f]=e.target.value;save()}
+ if(f.f){S.d[+f.i][f.f]=e.target.value;save();if(f.f==="mur")pOpts();if(f.f==="ay"||f.f==="hal")refreshSetoran()}
  if(f.m){S.meta[f.m]=e.target.value;save();if(f.m==="start")render()}
 });
 document.getElementById("wsel").onchange=function(){go(+this.value)};
@@ -200,15 +205,44 @@ function buildSheet(){
 function periods(mode){
  var P=[],n=S.weeks*7,i;
  if(mode==="w"){for(var w=0;w<S.weeks;w++)P.push({l:"Pekan "+(w+1),a:w*7,b:w*7+6});return P}
+ if(mode==="j")return juzPeriods();
  for(var b=0;b<S.weeks;b+=4){var e=Math.min(b+4,S.weeks);P.push({l:"Bulan ke-"+(b/4+1)+" (pekan "+(b+1)+"–"+e+")",a:b*7,b:e*7-1})}
  return P}
 function pOpts(){
- var pv=document.getElementById("pv"),P=periods(document.getElementById("pm").value),old=pv.value,h="",k=0;
+ juzList();var pv=document.getElementById("pv"),P=periods(document.getElementById("pm").value),old=pv.value,h="",k=0;
  P.forEach(function(p,i){h+='<option value="'+i+'">'+p.l+'</option>';if(p.a<=wk*7&&wk*7<=p.b)k=i});
- pv.innerHTML=h;pv.value=(old!==""&&+old<P.length)?old:k}
+ if(!P.length)h='<option value="0">Belum ada juz terisi</option>';pv.innerHTML=h;pv.value=(old!==""&&+old<P.length)?old:k}
 document.getElementById("pm").onchange=function(){document.getElementById("pv").innerHTML="";pOpts()};
 window.addEventListener("beforeprint",buildSheet);
-document.getElementById("print").onclick=function(){buildSheet();window.print()};
+var SN=["Al-Fatihah","Al-Baqarah","Ali ‘Imran","An-Nisa’","Al-Ma’idah","Al-An’am","Al-A’raf","Al-Anfal","At-Taubah","Yunus","Hud","Yusuf","Ar-Ra’d","Ibrahim","Al-Hijr","An-Nahl","Al-Isra’","Al-Kahf","Maryam","Ta Ha","Al-Anbiya’","Al-Hajj","Al-Mu’minun","An-Nur","Al-Furqan","Asy-Syu’ara’","An-Naml","Al-Qasas","Al-‘Ankabut","Ar-Rum","Luqman","As-Sajdah","Al-Ahzab","Saba’","Fatir","Ya Sin","As-Saffat","Sad","Az-Zumar","Gafir","Fussilat","Asy-Syura","Az-Zukhruf","Ad-Dukhan","Al-Jasiyah","Al-Ahqaf","Muhammad","Al-Fath","Al-Hujurat","Qaf","Az-Zariyat","At-Tur","An-Najm","Al-Qamar","Ar-Rahman","Al-Waqi’ah","Al-Hadid","Al-Mujadalah","Al-Hasyr","Al-Mumtahanah","As-Saff","Al-Jumu’ah","Al-Munafiqun","At-Tagabun","At-Talaq","At-Tahrim","Al-Mulk","Al-Qalam","Al-Haqqah","Al-Ma’arij","Nuh","Al-Jinn","Al-Muzzammil","Al-Muddassir","Al-Qiyamah","Al-Insan","Al-Mursalat","An-Naba’","An-Nazi’at","‘Abasa","At-Takwir","Al-Infitar","Al-Mutaffifin","Al-Insyiqaq","Al-Buruj","At-Tariq","Al-A’la","Al-Gasyiyah","Al-Fajr","Al-Balad","Asy-Syams","Al-Lail","Ad-Duha","Asy-Syarh","At-Tin","Al-‘Alaq","Al-Qadr","Al-Bayyinah","Az-Zalzalah","Al-‘Adiyat","Al-Qari’ah","At-Takasur","Al-‘Asr","Al-Humazah","Al-Fil","Quraisy","Al-Ma’un","Al-Kausar","Al-Kafirun","An-Nasr","Al-Lahab","Al-Ikhlas","Al-Falaq","An-Nas"];
+var SP=[1,2,50,77,106,128,151,177,187,208,221,235,249,255,262,267,282,293,305,312,322,332,342,350,359,367,377,385,396,404,411,415,418,428,434,440,446,453,458,467,477,483,489,496,499,502,507,511,515,518,520,523,526,528,531,534,537,542,545,549,551,553,554,556,558,560,562,564,566,568,570,572,574,575,577,578,580,582,583,585,586,587,587,589,590,591,591,592,593,594,595,595,596,596,597,597,598,598,599,599,600,600,601,601,601,602,602,602,603,603,603,604,604,604];
+function sOf(p){var s=0;for(var q=0;q<114;q++)if(SP[q]<=p)s=q;return s}
+function pgs(t){return (String(t||"").match(/\d+/g)||[]).map(Number).filter(function(x){return x>=1&&x<=604})}
+function sHint(lo,hi){var a=sOf(lo),b=sOf(hi),n=[];for(var q=a;q<=b;q++)n.push(SN[q]);return n.length>4?n[0]+" … "+n[n.length-1]:n.join(", ")}
+function setoranHTML(i){var a=Math.max(0,i-7),r="",lo=999,hi=0;
+ for(var k=a;k<i;k++){if(k%7===6)continue;var d=S.d[k],h=String(d.hal||"").trim(),y=String(d.ay||"").trim(),p=pgs(h),x="";
+  if(p.length){var l=Math.min.apply(null,p),u=Math.max.apply(null,p);lo=Math.min(lo,l);hi=Math.max(hi,u);x="hal. "+esc(h)+" (≈ "+sHint(l,u)+")"}else if(h)x="hal. "+esc(h);
+  if(y)x+=(x?" · ":"")+esc(y);
+  if(x)r+='<div style="padding:3px 0;border-top:1px solid var(--line)"><b>'+DN[k%7]+'</b> '+(dateOf(k,1)?dateOf(k,1)+' ':'')+'— '+x+'</div>'}
+ var top=hi?'<div style="margin-bottom:4px"><b>Rentang: hal. '+lo+(hi>lo?'–'+hi:'')+'</b> (≈ '+sHint(lo,hi)+')</div>':"";
+ return top+(r||'<div>Belum ada isian “Target hal/hari” pada hari-hari sebelumnya.</div>')+'<div style="color:var(--mute);margin-top:4px">Surah diperkirakan dari nomor halaman Mushaf Madinah. Hafalan hari Ahad ini sendiri masuk setoran Ahad berikutnya.</div>'}
+function refreshSetoran(){var el=document.getElementById("sr");if(el)el.innerHTML=setoranHTML(wk*7+1)}
+var JP=[1,22,42,62,82,102,121,142,162,182,201,222,242,262,282,302,322,342,362,382,402,422,442,462,482,502,522,542,562,582];
+function jpg(n){return JP[n-1]+"–"+(n<30?JP[n]-1:604)}
+function murJuz(s){var out=[],t=String(s||"").replace(/(\d+)\s*(?:-|–|—|s\/d|sd)\s*(\d+)/gi,function(_,a,b){a=+a;b=+b;for(var k=a;k<=b&&k<=30;k++)out.push(k);return " "});
+ (t.match(/\d+/g)||[]).forEach(function(x){out.push(+x)});return out.filter(function(k){return k>=1&&k<=30})}
+function juzPeriods(){
+ var seen={},ev=[],i,n=S.weeks*7,P=[],prev=-1;
+ for(i=0;i<n;i++){if(i%7===6)continue;murJuz(S.d[i].mur).forEach(function(k){if(!seen[k]){seen[k]=1;ev.push({j:k,e:i})}})}
+ ev.forEach(function(x){var a=Math.min(prev+1,x.e);while(a%7===6&&a<x.e)a++;
+  var f=dateOf(a,1),g=dateOf(x.e,1);
+  P.push({j:x.j,a:a,b:x.e,l:"Juz "+x.j+" (hal. "+jpg(x.j)+")"+(f?" · "+f+" s/d "+g:"")+" · hari ke-"+hariKe(a)+"–"+hariKe(x.e)});prev=x.e});
+ return P}
+function juzList(){var P=juzPeriods(),el=document.getElementById("jl");if(!el)return;
+ el.innerHTML=P.length?P.map(function(p){return '<div style="padding:4px 0;border-top:1px solid var(--line)">'+esc(p.l)+'</div>'}).join(""):"Belum ada juz terdeteksi. Isi kolom Muraja’ah (juz) pada hari-hari hafalan."}
+document.getElementById("print").onclick=function(){
+ if(document.getElementById("pm").value==="j"&&!periods("j").length){alert("Belum ada juz terdeteksi. Isi dulu kolom Muraja’ah (juz) pada hari-hari hafalan.");return}
+ buildSheet();window.print()};
 document.getElementById("reset").onclick=function(){
  if(confirm("Kosongkan SEMUA isian? Tindakan ini tidak bisa dibatalkan. Pastikan sudah dicadangkan.")){S=blank(26);wk=0;save();render()}};
 var dlg=document.getElementById("dlg"),txt=document.getElementById("txt");
