@@ -87,9 +87,15 @@ textarea{height:180px;font:12px/1.3 monospace}
  <button class="btn pri" id="print">Cetak / Simpan PDF</button>
 </div>
 
-<details class="panel"><summary style="padding:0"><b>Rekap juz (otomatis)</b> <span class="dt">dari kolom Muraja’ah</span></summary>
+<details class="panel" open><summary style="padding:0"><b>Status hafalan</b> <span class="dt">muraja’ah &amp; rabth</span></summary>
+ <div class="row3" style="margin-top:8px"><div><label for="mj">Muraja’ah (juz)</label><input id="mj" data-m="mj" placeholder="1"></div><div><label for="rjj">Rabth (juz)</label><input id="rjj" data-m="rj" placeholder="2"></div><div><label for="cj">Menghafal juz</label><input id="cj" data-m="cj" placeholder="3"></div></div>
+ <div id="si" class="note"></div>
+ <div class="tools" style="margin:8px 0 0"><button class="btn" id="fillw">Isi kolom kosong di pekan ini</button></div>
+ <p class="note">Rabth = 20 halaman terakhir yang sudah dihafal (1 juz); muraja’ah = juz-juz sebelumnya. Tombol di atas menyalin status ini ke kolom Muraja’ah dan Rabth (juz) pada hari-hari yang masih kosong di pekan yang sedang dibuka. Rabth awal/akhir per hari tetap dipakai untuk mengejar hafalan harian atau pekan lalu.</p>
+</details>
+<details class="panel"><summary style="padding:0"><b>Rekap juz (otomatis)</b> <span class="dt">dari kolom Muraja’ah &amp; Rabth</span></summary>
  <div id="jl" style="margin-top:8px;font-size:13px"></div>
- <p class="note">Juz dianggap selesai pada tanggal pertama juz itu muncul di kolom Muraja’ah (misalnya “1” atau “1-3”). Nomor halaman mengikuti Mushaf Madinah (604 halaman).</p>
+ <p class="note">Juz dianggap selesai pada tanggal pertama juz itu muncul di kolom Muraja’ah atau Rabth (juz), misalnya “1” atau “1-3”. Karena itu, isi status mulai dari hari saat juz itu benar-benar selesai. Nomor halaman mengikuti Mushaf Madinah (604 halaman).</p>
 </details>
 <div class="nav"><button class="btn" id="prev" aria-label="Pekan sebelumnya">‹</button><select id="wsel" aria-label="Pilih pekan"></select><button class="btn" id="next" aria-label="Pekan berikutnya">›</button></div>
 <div id="days"></div>
@@ -112,15 +118,15 @@ textarea{height:180px;font:12px/1.3 monospace}
 var DN=["Sabtu","Ahad","Senin","Selasa","Rabu","Kamis","Jum’at"],K2="metodequ-tahfidz-v2",K1="metodequ-tahfidz-v1";
 var MAX=5+3+25+2;
 function z(n){return Array(n).fill(0)}
-function day(){return {hal:"",juz:"",ay:"",cs:"",mur:"",ra:"",rk:"",k:z(5),i:z(3),m:0,r:0,t:z(25)}}
-function blank(n){var d=[];for(var i=0;i<n*7;i++)d.push(day());return {v:2,weeks:n,meta:{nama:"",juz:"",sd:"",target:"",start:"",finish:""},d:d}}
+function day(){return {hal:"",juz:"",ay:"",cs:"",rj:"",mur:"",ra:"",rk:"",k:z(5),i:z(3),m:0,r:0,t:z(25)}}
+function blank(n){var d=[];for(var i=0;i<n*7;i++)d.push(day());return {v:2,weeks:n,meta:{nama:"",juz:"",sd:"",target:"",start:"",finish:"",mj:"",rj:"",cj:""},d:d}}
 // Normalisasi: terima format lama (35 hari) atau baru; tidak pernah membuang data
 function norm(p){
  if(!p||!p.d||!p.d.length)return null;
  var n=Math.max(26,Math.ceil(p.d.length/7),p.weeks||0),o=blank(n);
  for(var m in o.meta)if(p.meta&&p.meta[m]!=null)o.meta[m]=p.meta[m];
  p.d.forEach(function(s,i){var t=o.d[i],a;if(!s)return;
-  ["hal","juz","ay","cs","mur","ra","rk"].forEach(function(f){if(s[f]!=null)t[f]=s[f]});
+  ["hal","juz","ay","cs","rj","mur","ra","rk"].forEach(function(f){if(s[f]!=null)t[f]=s[f]});
   [["k",5],["i",3],["t",25]].forEach(function(x){if(s[x[0]])for(a=0;a<x[1];a++)t[x[0]][a]=s[x[0]][a]?1:0});
   t.m=s.m?1:0;t.r=s.r?1:0});
  return o}
@@ -143,7 +149,7 @@ function dayHTML(i){
  var h='<details class="day" data-i="'+i+'"><summary><b>'+DN[i%7]+'</b><span class="dt">Hari ke-'+hariKe(i)+(dateOf(i)?' · '+dateOf(i):'')+'</span><span class="pct" id="p'+i+'">'+Math.round(prog(i)/MAX*100)+'%</span></summary><div class="body">';
  if(i%7===1)h+='<div class="sec" style="background:var(--soft);border-radius:10px;padding:10px"><span><b>Setoran Ahad</b>: hafalan sejak setoran terakhir</span><div id="sr" style="font-size:13px">'+setoranHTML(i)+'</div><label for="cs'+i+'" style="margin-top:8px">Catatan setoran (koreksi, nilai, tajwid)</label><textarea id="cs'+i+'" data-f="cs" data-i="'+i+'" style="height:70px;font:inherit">'+esc(d.cs)+'</textarea></div>';
  h+='<div class="row3"><div><label>Target hal/hari</label><input data-f="hal" data-i="'+i+'" value="'+esc(d.hal)+'"></div><div><label>Muraja’ah (juz)</label><input data-f="mur" data-i="'+i+'" value="'+esc(d.mur)+'"></div><div><label>Rabth awal</label><input data-f="ra" data-i="'+i+'" value="'+esc(d.ra)+'"></div></div>';
- h+='<div class="row3"><div></div><div></div><div><label>Rabth akhir</label><input data-f="rk" data-i="'+i+'" value="'+esc(d.rk)+'"></div></div>';
+ h+='<div class="row3"><div><label>Rabth (juz)</label><input data-f="rj" data-i="'+i+'" inputmode="numeric" value="'+esc(d.rj)+'"></div><div></div><div><label>Rabth akhir</label><input data-f="rk" data-i="'+i+'" value="'+esc(d.rk)+'"></div></div>';
  h+='<div class="sec"><span>Hafalan kemarin</span><div class="chips">'+chips(d.k,"k",i)+'</div></div>';
  h+='<div class="sec"><span>Istima’ qari mujawwad</span><div class="chips">'+chips(d.i,"i",i)+'</div></div>';
  h+='<div class="sec"><span>Hafalan baru</span><div class="chips">'+tog("m",i,"Menghafal")+tog("r",i,"Merekam")+'</div></div>';
@@ -175,7 +181,7 @@ document.addEventListener("click",function(e){
 document.addEventListener("input",function(e){
  var f=e.target.dataset;
  if(f.f){S.d[+f.i][f.f]=e.target.value;save();if(f.f==="mur")pOpts();if(f.f==="ay"||f.f==="hal")refreshSetoran()}
- if(f.m){S.meta[f.m]=e.target.value;save();if(f.m==="start")render()}
+ if(f.m){S.meta[f.m]=e.target.value;save();if(f.m==="start")render();else statusInfo()}
 });
 document.getElementById("wsel").onchange=function(){go(+this.value)};
 document.getElementById("prev").onclick=function(){go(wk-1)};
@@ -233,12 +239,19 @@ function murJuz(s){var out=[],t=String(s||"").replace(/(\d+)\s*(?:-|–|—|s\/d
  (t.match(/\d+/g)||[]).forEach(function(x){out.push(+x)});return out.filter(function(k){return k>=1&&k<=30})}
 function juzPeriods(){
  var seen={},ev=[],i,n=S.weeks*7,P=[],prev=-1;
- for(i=0;i<n;i++){if(i%7===6)continue;murJuz(S.d[i].mur).forEach(function(k){if(!seen[k]){seen[k]=1;ev.push({j:k,e:i})}})}
+ for(i=0;i<n;i++){if(i%7===6)continue;murJuz(S.d[i].mur).concat(murJuz(S.d[i].rj)).forEach(function(k){if(!seen[k]){seen[k]=1;ev.push({j:k,e:i})}})}
  ev.forEach(function(x){var a=Math.min(prev+1,x.e);while(a%7===6&&a<x.e)a++;
   var f=dateOf(a,1),g=dateOf(x.e,1);
   P.push({j:x.j,a:a,b:x.e,l:"Juz "+x.j+" (hal. "+jpg(x.j)+")"+(f?" · "+f+" s/d "+g:"")+" · hari ke-"+hariKe(a)+"–"+hariKe(x.e)});prev=x.e});
  return P}
-function juzList(){var P=juzPeriods(),el=document.getElementById("jl");if(!el)return;
+function jr(s){var j=murJuz(s);if(!j.length)return "";var lo=Math.min.apply(null,j),hi=Math.max.apply(null,j);return "juz "+(lo===hi?lo:lo+"–"+hi)+" (hal. "+JP[lo-1]+"–"+(hi<30?JP[hi]-1:604)+")"}
+function statusInfo(){var el=document.getElementById("si");if(!el)return;var m=S.meta,r=[];
+ if(jr(m.mj))r.push("Muraja’ah: "+jr(m.mj));if(jr(m.rj))r.push("Rabth: "+jr(m.rj));if(jr(m.cj))r.push("Menghafal: "+jr(m.cj));
+ el.textContent=r.join(" · ")}
+document.getElementById("fillw").onclick=function(){var c=0;
+ for(var j=0;j<6;j++){var d=S.d[wk*7+j];if(!d.mur&&S.meta.mj){d.mur=S.meta.mj;c++}if(!d.rj&&S.meta.rj){d.rj=S.meta.rj;c++}}
+ save();render();alert(c?"Terisi "+c+" kolom kosong di pekan ini.":"Tidak ada kolom kosong yang perlu diisi, atau status hafalan di atas masih kosong.")};
+function juzList(){statusInfo();var P=juzPeriods(),el=document.getElementById("jl");if(!el)return;
  el.innerHTML=P.length?P.map(function(p){return '<div style="padding:4px 0;border-top:1px solid var(--line)">'+esc(p.l)+'</div>'}).join(""):"Belum ada juz terdeteksi. Isi kolom Muraja’ah (juz) pada hari-hari hafalan."}
 document.getElementById("print").onclick=function(){
  if(document.getElementById("pm").value==="j"&&!periods("j").length){alert("Belum ada juz terdeteksi. Isi dulu kolom Muraja’ah (juz) pada hari-hari hafalan.");return}
